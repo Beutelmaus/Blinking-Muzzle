@@ -1,5 +1,5 @@
 <p align="center">
-<img src="/doc/images/Projekt_Logo.png" width="600">
+<img src="/doc/images/Projekt_Logo.jpg" width="600">
 </p>
 
 Blinking-Muzzle is a silly side project to play around with some LED animation.
