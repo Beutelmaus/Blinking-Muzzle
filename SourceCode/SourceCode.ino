@@ -28,6 +28,7 @@ bool lastButtonState = LOW;
 byte Brightness_Low       =  3;
 byte Brightness_High      = 20;
 byte Brightness_Selected  = 20;
+uint16_t i, j;//Used in For loops
 
 static uint8_t colors[8][3] = {
   255,   0,   0, // Row 0: Red
@@ -58,7 +59,7 @@ void setup() {
   }
   currentProgram = 1;//Start with all LED's off
 }
-//////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void loop() {
   switch (currentProgram) {
     case 1://OFF
@@ -66,12 +67,11 @@ void loop() {
       leds.show();
       CheckBoopSensor();
       break;
-    case 2: RainbowCycle(20);break;
-    case 3: SetAllLedsTo(colors[7]);break;//Magenta
-//    case 4: PulseColour(20, Green);break;
-    case 4: SetAllLedsTo(colors[3]);break;//Green
-    case 5: SetAllLedsTo(colors[4]);break;//Cyan
-    case 6: SetAllLedsTo(colors[0]);break;//Red
+    case 2: RainbowCycle(5200);break;//Pass cycle time in ms
+    case 3: WavePulseAllLeds(colors[7], 70, 5000);break;//Magenta, 70%, 5s
+    case 4: WavePulseAllLeds(colors[3], 10, 3000);break;//Green
+    case 5: WavePulseAllLeds(colors[4], 80, 5000);break;//Cyan
+    case 6: PulseAllLeds(colors[0], 50, 10000);break;//Red
     default:currentProgram = 1;
   }
 }
@@ -79,13 +79,11 @@ void loop() {
 void CheckBoopSensor() {
   bool currentState = digitalRead(BUTTON_PIN);
   ProgramLastCycle  = currentProgram;
-  // Print both sensor state and current program
-  Serial.print("Button: ");
-  Serial.print(currentState == HIGH ? "Off" : "On");
-  Serial.print(" | Program: ");
-  Serial.print(currentProgram);
-  Serial.print(" - ");
-  Serial.println(programNames[currentProgram]);
+ 
+  //Debug Output
+  Serial.print("Button: ");      Serial.print(currentState == HIGH ? "Off" : "On");
+  Serial.print(" | Program: ");  Serial.print(currentProgram);
+  Serial.print(" - ");           Serial.println(programNames[currentProgram]);
 
   if (currentState == LOW && lastButtonState == HIGH) {
     currentProgram++;
@@ -105,18 +103,83 @@ void SetAllLedsTo(uint8_t color[3]) {
   for (int i = 0; i < NUM_LEDS; i++) {
     leds.setPixelColor(i           , _color);// Strip 1
     leds.setPixelColor(i + NUM_LEDS, _color);// Strip 2
-    // Add more strips if needed...
+    // fill command would do the same but this is function is usefull for testing
   }
 
   leds.show();
   CheckBoopSensor();
 }
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+// Single Pulsating
+
+void PulseAllLeds(uint8_t color[3], uint8_t startPercent, uint16_t cycleTime) {
+  if (startPercent > 100){currentProgram = currentProgram + 1; return;}//Skip program if call is invalid
+  uint16_t delayPerStep = cycleTime / (2 * (100 - startPercent)); // Divide by 2 for fade in + out
+
+  // Fade in
+  for (uint8_t i = startPercent; i <= 100; i += 1) {
+    uint8_t r = color[0] * i / 100;
+    uint8_t g = color[1] * i / 100;
+    uint8_t b = color[2] * i / 100;
+
+    leds.fill(leds.Color(r, g, b));
+    leds.show();
+    CheckBoopSensor();
+    if (currentProgram != ProgramLastCycle) return; // Exit immediately if program changed
+    delay(delayPerStep);
+  }
+
+  // Fade out
+  for (int i = 100; i >= startPercent; i -= 1) {
+    uint8_t r = color[0] * i / 100;
+    uint8_t g = color[1] * i / 100;
+    uint8_t b = color[2] * i / 100;
+
+    leds.fill(leds.Color(r, g, b));
+    leds.show();
+    CheckBoopSensor();
+    if (currentProgram != ProgramLastCycle) return; // Exit immediately if program changed
+    delay(delayPerStep);
+  }
+  Serial.println(" Finished Single Pulse Cycle");}
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+// Pulsating Wave
+void WavePulseAllLeds(uint8_t color[3], uint8_t startPercent, uint16_t cycleTime) {
+  if (startPercent > 100){currentProgram = currentProgram + 1; return;}//Skip program if call is invalid
+
+ const uint8_t maxBrightness = 100;
+  const uint16_t StepsInTotal = 255; // Number of wave steps
+  const uint16_t delayPerStep = cycleTime / StepsInTotal;
+  const float twoPi = 3.14159265359 *2;
+
+  for (uint16_t step = 0; step < StepsInTotal; step++) {
+    for (uint8_t i = 0; i < NUM_LEDS *2 ; i++) {
+      
+      float phase = ((float)i / (NUM_LEDS * 2)) * twoPi;//Calculate LED-specific phase offset
+      float brightness = 0.5 * (1 + sin(twoPi * step / StepsInTotal + phase));//Use sin to make a wave, normalized to 0–100%
+
+      float scaledBrightness = brightness * (maxBrightness - startPercent) + startPercent;
+
+      uint8_t r = color[0] * scaledBrightness / 100;
+      uint8_t g = color[1] * scaledBrightness / 100;
+      uint8_t b = color[2] * scaledBrightness / 100;
+
+    leds.setPixelColor(i           , leds.Color(r, g, b));// Strip 1
+    leds.setPixelColor(i + NUM_LEDS, leds.Color(r, g, b));// Strip 2
+    }
+
+    leds.show();
+    CheckBoopSensor();
+    if (currentProgram != ProgramLastCycle) return;
+    delay(delayPerStep);
+  }
+  Serial.println(" Finished Pulsating Wave Cycle");}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 // Rainbow Cycle
-void RainbowCycle(int DelayDuration) {
+void RainbowCycle(int cycleTime) {
   byte* c;
-  uint16_t i, j, currentPixel;
+uint16_t currentPixel;
   for (j = 0; j < 256; j++) {
     for (i = 0; i < NUM_LEDS; i++) {
       c = RainbowWheel(((i * 256 / NUM_LEDS) + j) & 255);
@@ -127,7 +190,9 @@ void RainbowCycle(int DelayDuration) {
     leds.show();
     CheckBoopSensor();
     if (currentProgram != ProgramLastCycle) return; // Exit immediately if program changed
-    delay(DelayDuration);  }}
+    delay(cycleTime/256);
+    }
+    Serial.println(" Finished Rainbow Cycle");}
 
 byte* RainbowWheel(byte WheelPosition) {
   static byte c[3];
