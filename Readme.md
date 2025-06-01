@@ -48,7 +48,7 @@ The layout is very similat to the desing of adafruit[Adafruit](https://learn.ada
 <img src="/doc/images/Wiring-Breadboard.png" width="600">
 </p>
 <p align="center">
-<img src="/doc/images/Wiring-Schematic.png" width="600">
+<img src="/doc/images/Wiring-Schematic.svg" width="600">
 </p>
 
 # Project dependencies
@@ -59,10 +59,3 @@ This project relies on several third party Software:
 - [Hardware Libary](https://github.com/earlephilhower/arduino-pico)
 - [Neopixel](https://github.com/adafruit/Adafruit_NeoPixel) or [NeoPXL8](https://github.com/adafruit/Adafruit_NeoPXL8) libary must be [installed](https://docs.arduino.cc/software/ide-v1/tutorials/installing-libraries/) libary
 
-Honorable mentions:
-- some silly guy made this thing first, adding led's to everything is not my idea
-- The RainbowCycle code is a adaptation from [Electriangle](https://github.com/Electriangle/RainbowCycle_Main)
-
-# License
-
-- MIT

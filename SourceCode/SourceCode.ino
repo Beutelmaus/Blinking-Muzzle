@@ -13,7 +13,9 @@
 // For the Feather RP2040 SCORPIO, use this list:
 int8_t pins[8] = { 16, 17, 18, 19, 20, 21, 22, 23 };
 
-#define BUTTON_PIN 5
+#define BoopSensorIn 5
+#define BoopSensorOut 6
+
 #define Number_OF_Programms 6
 
 Adafruit_NeoPXL8 leds(NUM_LEDS, pins, NEO_GRB + NEO_KHZ800);
@@ -43,7 +45,10 @@ static uint8_t colors[8][3] = {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 void setup() {
-  pinMode(BUTTON_PIN, INPUT);
+  pinMode(BoopSensorIn, INPUT);
+  pinMode(BoopSensorOut, OUTPUT);
+  digitalWrite(BoopSensorOut, 0);
+  
   Serial.begin(9600);
 
   if (!leds.begin()) {// Blink the onboard LED if something was configurn wrong.
@@ -55,7 +60,8 @@ void setup() {
   for (uint32_t color = 0xFF0000; color > 0; color >>= 8) {// Cycle all pixels red/green/blue on startup. 
     leds.fill(color);
     leds.show();
-    delay(500);
+    delay(1500);
+    digitalWrite(BoopSensorOut, 1);//Sensor teaches value when switching on
   }
   currentProgram = 1;//Start with all LED's off
 }
@@ -68,7 +74,7 @@ void loop() {
       CheckBoopSensor();
       break;
     case 2: RainbowCycle(5200);break;//Pass cycle time in ms
-    case 3: WavePulseAllLeds(colors[7], 70, 5000);break;//Magenta, 70%, 5s
+    case 3: WavePulseAllLeds(colors[7], 40,  750);break;//Magenta, 40%, 0,75s
     case 4: WavePulseAllLeds(colors[3], 10, 3000);break;//Green
     case 5: WavePulseAllLeds(colors[4], 80, 5000);break;//Cyan
     case 6: PulseAllLeds(colors[0], 50, 10000);break;//Red
@@ -77,7 +83,7 @@ void loop() {
 }
 
 void CheckBoopSensor() {
-  bool currentState = digitalRead(BUTTON_PIN);
+  bool currentState = digitalRead(BoopSensorIn);
   ProgramLastCycle  = currentProgram;
  
   //Debug Output
