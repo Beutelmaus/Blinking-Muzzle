@@ -61,7 +61,7 @@ This project relies on several third party Software:
 
 Honorable mentions:
 - some silly guy made this thing first, adding led's to everything is not my idea
-- The RainbowCycle code is a copie from [Electriangle](https://github.com/Electriangle/RainbowCycle_Main)
+- The RainbowCycle code is a adaptation from [Electriangle](https://github.com/Electriangle/RainbowCycle_Main)
 
 # License
 
