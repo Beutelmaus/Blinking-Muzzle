@@ -56,7 +56,7 @@ The layout is very similat to the desing of adafruit[Adafruit](https://learn.ada
 This project relies on several third party Software:
 
 - Arduino IDE
-- [Hardware Libary](https://github.com/earlephilhower/rduino-pico)
+- [Hardware Libary](https://github.com/earlephilhower/arduino-pico)
 - [Neopixel](https://github.com/adafruit/Adafruit_NeoPixel) or [NeoPXL8](https://github.com/adafruit/Adafruit_NeoPXL8) libary must be [installed](https://docs.arduino.cc/software/ide-v1/tutorials/installing-libraries/) libary
 
 Honorable mentions:
