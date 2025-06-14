@@ -8,13 +8,16 @@
 
 #include <Adafruit_NeoPXL8.h>
 
-#define NUM_LEDS    7      // NeoPixels PER STRAND, total number is 8X this!
+#define NUM_LEDS    9      // NeoPixels PER STRAND, total number is 8X this!
 
 // For the Feather RP2040 SCORPIO, use this list:
 int8_t pins[8] = { 16, 17, 18, 19, 20, 21, 22, 23 };
 
-#define BoopSensorIn 5
-#define BoopSensorOut 6
+#define BoopSensorIn 6
+#define BoopSensorOut 5
+
+#define BrightnesSensorIn 10
+#define BrightnesSensorOut 12
 
 #define Number_OF_Programms 6
 
@@ -22,14 +25,12 @@ Adafruit_NeoPXL8 leds(NUM_LEDS, pins, NEO_GRB + NEO_KHZ800);
 
 
 
-uint16_t currentProgram = 1;
+uint16_t currentProgram, currentBrightness = 1;
 const char* programNames[] = {"", "Off","Rainbow","Magenta","Green","Cyan","Red"};// Names for display in Serial Monitor
 uint16_t ProgramLastCycle = 1;
 bool lastButtonState = LOW;
 
-byte Brightness_Low       =  3;
-byte Brightness_High      = 20;
-byte Brightness_Selected  = 20;
+
 uint16_t i, j;//Used in For loops
 
 static uint8_t colors[8][3] = {
@@ -48,6 +49,10 @@ void setup() {
   pinMode(BoopSensorIn, INPUT);
   pinMode(BoopSensorOut, OUTPUT);
   digitalWrite(BoopSensorOut, 0);
+  pinMode(BrightnesSensorIn, INPUT);
+  pinMode(BrightnesSensorOut, OUTPUT);
+  digitalWrite(BrightnesSensorOut, 1);
+  
   
   Serial.begin(9600);
 
@@ -55,7 +60,7 @@ void setup() {
     pinMode(LED_BUILTIN, OUTPUT);
     for (;;) digitalWrite(LED_BUILTIN, (millis() / 500) & 1);
   }
-  leds.setBrightness(10);
+  leds.setBrightness(250);
   
   for (uint32_t color = 0xFF0000; color > 0; color >>= 8) {// Cycle all pixels red/green/blue on startup. 
     leds.fill(color);
@@ -84,10 +89,11 @@ void loop() {
 
 void CheckBoopSensor() {
   bool currentState = digitalRead(BoopSensorIn);
-  ProgramLastCycle  = currentProgram;
+  bool Brightness_currentState = digitalRead(BrightnesSensorIn);
  
   //Debug Output
   Serial.print("Button: ");      Serial.print(currentState == HIGH ? "Off" : "On");
+  Serial.print(" | Brightness: ");  Serial.print(currentBrightness);
   Serial.print(" | Program: ");  Serial.print(currentProgram);
   Serial.print(" - ");           Serial.println(programNames[currentProgram]);
 
@@ -97,6 +103,21 @@ void CheckBoopSensor() {
     }
 
   lastButtonState = currentState;
+
+ if (Brightness_currentState == HIGH) {
+          currentBrightness++;
+     if (currentBrightness > 7) currentBrightness = 1;
+      switch (currentBrightness) {
+        case 1: leds.setBrightness(250); leds.show(); break;
+        case 2: leds.setBrightness(200); leds.show(); break;
+        case 3: leds.setBrightness(150); leds.show(); break;
+        case 4: leds.setBrightness(100); leds.show(); break;
+        case 5: leds.setBrightness(50);  leds.show(); break;
+        case 6: leds.setBrightness(15);  leds.show(); break;
+        case 7: leds.setBrightness(5);   leds.show(); break;
+}
+      delay(500);
+    }
 }
 
 
