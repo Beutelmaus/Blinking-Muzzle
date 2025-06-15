@@ -18,8 +18,8 @@ Adafruit_NeoPXL8 leds(NUM_LEDS, pins, NEO_GRB + NEO_KHZ800);
 #define BoopSensorIn 6
 #define BoopSensorOut 5
 
-#define BrightnesSensorIn 10
-#define BrightnesSensorOut 12
+#define BrightnesSensorIn 12
+#define BrightnesSensorOut 10
 
 #define Number_OF_Programms 6
 
@@ -100,6 +100,13 @@ void loop() {
     case 6: PulseAllLeds(colors[0], 50, 10000);break;//Red
     default:currentProgram = 1;
   }
+
+   switch (Brighness_Level) {
+    case 1:leds.setBrightness(250); break;
+    case 2:leds.setBrightness(150); break;
+    case 3:leds.setBrightness(30); break;
+    case 4:leds.setBrightness(15); break;
+   }
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -128,10 +135,8 @@ void CheckBrightnessSensor() {
 
     if (Brightness_currentState == HIGH && Brightness_lastState == LOW) {
       Brighness_Level++;
-      if (Brighness_Level > 4) Brighness_Level = 1;
-  }
-
-  Brightness_lastState = Brightness_currentState;
+      if (Brighness_Level > 4) Brighness_Level = 1;}  
+    Brightness_lastState = Brightness_currentState;
 }
 void SetOnboardLed() {
   uint32_t color = leds.getPixelColor(0); // First pixel of first strip
