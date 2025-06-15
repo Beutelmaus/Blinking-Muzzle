@@ -31,11 +31,9 @@ const char* programNames[] = {"", "Off","Rainbow","Magenta","Green","Cyan","Red"
 uint16_t ProgramLastCycle = 1;
 bool lastButtonState = LOW;
 
-unsigned long lastDebounceTime = 0;
 bool Brightness_lastState = LOW;
-uint16_t Brighness_Level = 1;
-byte Brightness_Selected  = 250;
-byte Brightness_LastCycle  = 250;
+uint16_t Brighness_Level = 0;
+
 
 uint16_t i, j;//Used in For loops
 
@@ -58,17 +56,16 @@ void setup() {
   pinMode(BrightnesSensorIn, INPUT);
   pinMode(BrightnesSensorOut, OUTPUT);
   digitalWrite(BrightnesSensorOut, 1);
+  pinMode(LED_BUILTIN, OUTPUT);
   
   Serial.begin(9600);
 
-  if (!leds.begin()) {// Blink the onboard LED if something was configurn wrong.
-    pinMode(LED_BUILTIN, OUTPUT);
-    for (;;){
-      digitalWrite(LED_BUILTIN, (millis() / 1000) & 1);
-      Serial.println("Configuration Error");
-    }
-  }
+  if (!leds.begin()) {// Check if configuration is valid
+    for (;;){digitalWrite(LED_BUILTIN, (millis() / 500) & 1);
+             Serial.println("Configuration Error - Stips");}}
+  OnboardLED.begin();
   leds.setBrightness(10);
+  OnboardLED.setBrightness(10);
   
   for (uint32_t color = 0xFF0000; color > 0; color >>= 8) {// Cycle all pixels red/green/blue on startup. 
     leds.fill(color);
@@ -77,10 +74,6 @@ void setup() {
     digitalWrite(BoopSensorOut, 1);//Sensor teaches value when switching on
   }
   currentProgram = 1;//Start with all LED's off
-
-  OnboardLED.begin();
-  OnboardLED.setBrightness(10);
-  OnboardLED.show();
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void loop() {
@@ -89,24 +82,13 @@ void loop() {
       leds.clear();
       leds.show();
       CheckBoopSensor();
-
-      OnboardLED.clear();
-      OnboardLED.show();
       break;
     case 2: rainbow(50);break;//Pass cycle time in ms
     case 3: WavePulseAllLeds(colors[7], 40,  750);break;//Magenta, 40%, 0,75s
     case 4: WavePulseAllLeds(colors[3], 10, 3000);break;//Green
     case 5: WavePulseAllLeds(colors[4], 80, 5000);break;//Cyan
     case 6: PulseAllLeds(colors[0], 50, 10000);break;//Red
-    default:currentProgram = 1;
-  }
-
-   switch (Brighness_Level) {
-    case 1:leds.setBrightness(250); break;
-    case 2:leds.setBrightness(150); break;
-    case 3:leds.setBrightness(30); break;
-    case 4:leds.setBrightness(15); break;
-   }
+    default:currentProgram = 1;}
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -135,7 +117,14 @@ void CheckBrightnessSensor() {
 
     if (Brightness_currentState == HIGH && Brightness_lastState == LOW) {
       Brighness_Level++;
-      if (Brighness_Level > 4) Brighness_Level = 1;}  
+     if (Brighness_Level == 1){ leds.setBrightness(250);}
+     if (Brighness_Level == 2){ leds.setBrightness(150);}
+     if (Brighness_Level == 3){ leds.setBrightness(30);}
+     if (Brighness_Level == 4){ leds.setBrightness(15);} 
+     if (Brighness_Level > 4) Brighness_Level = 1;
+
+     OnboardLED.setBrightness(10);//Currently doesn't change
+   }
     Brightness_lastState = Brightness_currentState;
 }
 void SetOnboardLed() {
